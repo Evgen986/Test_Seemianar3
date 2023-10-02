@@ -8,35 +8,55 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class CalculatorControllerTest {
 
-    private CalculatorController controller;
-    @Mock
-    private CalculatorModel model;
-    @Mock
-    private CalculatorView view;
-
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        controller = new CalculatorController(model, view);
-    }
+//    private CalculatorController controller;
+//    @Mock
+//    private CalculatorModel model;
+//    @Mock
+//    private CalculatorView view;
+//
+//    @BeforeEach
+//    public void setUp() {
+//        MockitoAnnotations.initMocks(this);
+//        controller = new CalculatorController(model, view);
+//    }
+//
+//    @Test
+//    public void testPerformOperationWithArithmeticException() {
+//        when(view.getInput()).thenReturn(5, 0); // Ввод пользователя: первое число = 5, второе число = 0
+//        when(model::divide).thenThrow(new ArithmeticException("Деление на ноль"));
+//
+//        controller.run();
+//
+//        // Проверяем, что было вызвано сообщение об ошибке с правильным сообщением
+//        verify(view).printErrorMessage("Ошибка: Деление на ноль");
+//    }
 
     @Test
-    public void testPerformOperationWithArithmeticException() {
-        when(view.getInput()).thenReturn(5, 0); // Ввод пользователя: первое число = 5, второе число = 0
-        when(model::divide).thenThrow(new ArithmeticException("Деление на ноль"));
-
-        controller.run();
-
-        // Проверяем, что было вызвано сообщение об ошибке с правильным сообщением
-        verify(view).printErrorMessage("Ошибка: Деление на ноль");
+    public void getNumberInput(){
+        CalculatorController controller = new CalculatorController(new CalculatorModel(), new CalculatorView()); // Создаем заглушку контроллера
+        Class <CalculatorController> controllerClass = CalculatorController.class; // Используя рефлексию получаем класс контроллера, как объект
+        Method [] methods = controllerClass.getDeclaredMethods(); // Получаем все методы класса, в том числе и private
+        for (Method method : methods){ // Перебираем полученные методы
+            if (method.getName().equals("getNumberInput")){ // Когда находим нужный нам метод
+                try {
+                    method.setAccessible(true); // Снимаем с него проверку на модификатор доступа
+                    ByteArrayInputStream in = new ByteArrayInputStream("5\n".getBytes()); // В поток ввода передаем 5
+                    System.setIn(in);
+                    assertEquals(5, method.invoke(controller, "message"), "Метод зафейлился"); // Проверяем что вернул private метод
+                    System.setIn(System.in); // Возвращаем поток ввода в исходное состояние
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
-
 
 
 
